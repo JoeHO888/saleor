@@ -1624,7 +1624,7 @@ def create_checkout_with_same_variant_in_multiple_lines():
 
 
 def create_tax_classes():
-    names = ["Groceries", "Books"]
+    names = ["Groceries", "Books", "No Taxes"]
     tax_classes = []
     for name in names:
         tax_classes.append(TaxClass(name=name))
