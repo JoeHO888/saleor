@@ -555,7 +555,7 @@ BEAT_EXPIRE_ORDERS_AFTER_TIMEDELTA = timedelta(
 # entry 'update-products-search-vectors' expire if it wasn't picked up by a worker.
 BEAT_UPDATE_SEARCH_SEC = int(os.environ.get("BEAT_UPDATE_SEARCH_FREQUENCY", "20"))
 
-BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = BEAT_UPDATE_SEARCH_SEC
+BEAT_UPDATE_SEARCH_EXPIRE_AFTER_SEC = int(os.environ.get("BEAT_UPDATE_SEARCH_EXPIRY", "60"))
 
 # Defines the Celery beat scheduler entries.
 #
