@@ -2,6 +2,24 @@ stages:
   - package_installation
   - pre_setup
 
+variables:
+  HOST: "api.domain.com"
+  ADMIN_EMAIL: "admin@domain.com"
+  ADMIN_PASS: "password"
+  STATIC_URL: "/static/"
+  MEDIA_URL: "/media/" 
+  PGDBHOST: "localhost"
+  DBPORT: 5432
+  GQL_PORT: 9000
+  API_PORT: 8000
+  APIURI: "graphql"
+  VERSION: "main"
+  SAME_HOST: "no"
+  APP_HOST: "dashboard.domain.com"
+  APP_MOUNT_URI: "app.domain.com"
+  TEST_ACCOUNT_CONFIRM_REDIRECT_URL: "dashboard.domain.comaccount-confirm"
+  TEST_STAFF_CONFIRM_REDIRECT_URL: "dashboard.domain.comnew-password"  
+
 package_installation:
   stage: package_installation
   image: valudio/docker-sshpass:latest
