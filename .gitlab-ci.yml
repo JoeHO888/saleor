@@ -27,3 +27,24 @@ postgresql_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP ROLE IF EXISTS $PGSQLUSER;'"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c \"CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;\""
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'CREATE DATABASE saleor;'"
+
+secret_key_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest
+  variables:
+    PGSQLDBNAME: saleor
+    PGSQLUSER: user
+  before_script:
+    - |
+      sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no '
+      if [ ! -d "/etc/saleor" ]; then
+        sudo mkdir /etc/saleor
+      else
+        # Does the key file exist?
+        if [ -f "/etc/saleor/api_sk" ]; then
+                # Yes, remove it.
+                sudo rm /etc/saleor/api_sk
+        fi
+      fi'
+  script:
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "echo $(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 2048| head -n 1) | sudo dd status=none of=/etc/saleor/api_sk"                     
