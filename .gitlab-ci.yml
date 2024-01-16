@@ -1,5 +1,6 @@
 stages:
   - package_installation
+  - pre_setup
 
 package_installation:
   stage: package_installation
@@ -9,3 +10,20 @@ package_installation:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y build-essential python3-dev python3-pip python3-cffi python3.9-venv gcc" 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info libpq-dev" 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y postgresql postgresql-contrib nginx redis"             
+
+postgresql_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest
+  variables:
+    PGSQLDBNAME: saleor
+    PGSQLUSER: saleor
+    PGSQLUSERPASS: saleor
+    CREATE_USER_CMD: CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;
+  before_script:
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'postgresql' && sudo systemctl restart postgresql.service"    
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'celery' && sudo systemctl stop celery.service"        
+  script:
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP DATABASE IF EXISTS $PGSQLDBNAME;'"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP ROLE IF EXISTS $PGSQLUSER;'"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c \"CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;\""
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'CREATE DATABASE saleor;'"
