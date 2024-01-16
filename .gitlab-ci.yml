@@ -66,3 +66,10 @@ secret_key_setup:
       fi'
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "echo $(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 2048| head -n 1) | sudo dd status=none of=/etc/saleor/api_sk"                     
+
+firewall_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $GQL_PORT"      
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $API_PORT"    
