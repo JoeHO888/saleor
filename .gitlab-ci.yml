@@ -1,0 +1,11 @@
+stages:
+  - package_installation
+
+package_installation:
+  stage: package_installation
+  image: valudio/docker-sshpass:latest
+  script:
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get update" 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y build-essential python3-dev python3-pip python3-cffi python3.9-venv gcc" 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info libpq-dev" 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y postgresql postgresql-contrib nginx redis"             
