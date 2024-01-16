@@ -3,6 +3,8 @@ stages:
   - pre_setup
 
 variables:
+  UN: "user"
+  HD: "/home/$UN"
   HOST: "api.domain.com"
   ADMIN_EMAIL: "admin@domain.com"
   ADMIN_PASS: "password"
@@ -73,3 +75,14 @@ firewall_setup:
   script: 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $GQL_PORT"      
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $API_PORT"    
+
+python_virtual_environment_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest
+  script: 
+    - echo $HD
+    - echo $UN
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "[ ! -d "$HD/env" ] && sudo -u $UN mkdir "$HD/env""      
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "[ ! -d "$HD/env/saleor" ] && sudo -u $UN python3.9 -m venv "$HD/env/saleor""        
+
+
