@@ -1,0 +1,12 @@
+[Unit]
+Description=uWSGI for Saleor API
+After=network.target
+[Service]
+User=root
+Group=root
+Restart=always
+WorkingDirectory={hd}/saleor
+EnvironmentFile={hd}/saleor/.env
+ExecStart={hd}/env/saleor/bin/gunicorn --bind unix://{hd}/run/saleor.sock --log-config log.conf --workers 2 --worker-class uvicorn.workers.UvicornWorker saleor.asgi:application
+[Install]
+WantedBy=multi-user.target
