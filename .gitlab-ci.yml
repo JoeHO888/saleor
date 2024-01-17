@@ -88,3 +88,18 @@ gunicorn_sock_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"    
 
+mailpit_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest            
+  script:
+# Reset mailpit  
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'mailpit' && sudo systemctl stop mailpit"    
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo bash < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/systemd/system/mailpit.service"
+# Configure mailpit           
+    - sshpass -p $PASS scp deploy/mailpit.service user@$SERVER:/tmp
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/mailpit.service /etc/systemd/system/mailpit.service"  
+# Start mailpit     
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable mailpit.service"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart mailpit.service"
+
