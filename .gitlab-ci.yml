@@ -129,3 +129,25 @@ nginx_config_setup:
     - sshpass -p $PASS scp deploy/saleor_server_block user@$SERVER:/tmp
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/saleor_server_block /etc/nginx/sites-available/saleor_server_block"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo ln -s /etc/nginx/sites-available/saleor_server_block /etc/nginx/sites-enabled/"    
+
+nginx_ssl_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest            
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/ssl"  
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir /etc/nginx/ssl"           
+    - sshpass -p $PASS scp deploy/nginx.conf user@$SERVER:/tmp
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/nginx.conf"    
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/nginx.conf /etc/nginx/nginx.conf"
+    - | 
+      sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "
+      sudo tee -a /etc/nginx/ssl/domain.com.crt > /dev/null <<EOT
+      $DOMAIN_COM_CRT
+      EOT
+      "     
+    - | 
+      sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "
+      sudo tee -a /etc/nginx/ssl/domain.com.key > /dev/null <<EOT
+      $DOMAIN_COM_KEY
+      EOT
+      "          
