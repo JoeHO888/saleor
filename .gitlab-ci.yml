@@ -118,3 +118,14 @@ gunicorn_log_setup:
   script: 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /var/log/gunicorn" 
     - sshpass -p $PASS scp deploy/log.conf user@$SERVER:$HD/saleor
+
+nginx_config_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest            
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-available/saleor_server_block"  
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-enabled/saleor_server_block "           
+    - sed "s|{hd}|$HD|g; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{media}|$MEDIA_URL|g" deploy/server_block.template | dd status=none of=deploy/saleor_server_block             
+    - sshpass -p $PASS scp deploy/saleor_server_block user@$SERVER:/tmp
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/saleor_server_block /etc/nginx/sites-available/saleor_server_block"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo ln -s /etc/nginx/sites-available/saleor_server_block /etc/nginx/sites-enabled/"    
