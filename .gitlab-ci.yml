@@ -70,15 +70,9 @@ python_virtual_environment_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
   script: 
-    - |
-      sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "
-      if [ ! -d "$HD/env" ]; then
-        sudo -u $UN mkdir $HD/env
-      fi"
-    - |
-      sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "
-      if [ ! -d "$HD/env/saleor" ]; then
-        sudo -u $UN python3.9 -m venv $HD/env/saleor
-      fi"     
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/env"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/env"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN python3.9 -m venv $HD/env/saleor" 
+
 
 
