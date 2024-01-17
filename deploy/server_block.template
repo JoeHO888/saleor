@@ -1,0 +1,44 @@
+# the upstream component nginx needs to connect to
+upstream uvicorn {
+    server unix://{hd}/run/saleor.sock;
+}
+
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+# configuration of the server
+server {
+    listen      80;
+    listen      443 ssl;
+    ssl_certificate     /etc/nginx/ssl/domain.com.crt;
+    ssl_certificate_key /etc/nginx/ssl/domain.com.key;    
+    server_name {host} www.{host};
+    charset     utf-8;
+
+    # max upload size
+    client_max_body_size 75M;
+    
+    # Django media and static files
+    location {media}  {
+        alias {hd}/saleor/media/;
+    }
+    
+    location {static} {
+        alias {hd}/saleor/static/;
+    }
+
+    # Send all non-media requests to the Django server.
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection $connection_upgrade;
+        proxy_redirect off;
+        proxy_buffering off;
+        proxy_pass http://uvicorn;        
+    }
+
+}
