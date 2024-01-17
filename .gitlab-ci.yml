@@ -103,3 +103,11 @@ mailpit_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable mailpit.service"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart mailpit.service"
 
+saleor_service_file_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest            
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/systemd/system/saleor.service"    
+    - sed "s/{un}/$UN/; s|{hd}|$HD|g" deploy/saleor.template.service | dd status=none of=deploy/saleor.service             
+    - sshpass -p $PASS scp deploy/saleor.service user@$SERVER:/tmp
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/saleor.service /etc/systemd/system/saleor.service"
