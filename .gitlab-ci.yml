@@ -1,6 +1,7 @@
 stages:
   - package_installation
   - pre_setup
+  - app_config
 
 variables:
   UN: "user"
@@ -156,3 +157,12 @@ nginx_ssl_setup:
       $DOMAIN_COM_KEY
       EOT
       "          
+
+saleor_environment_variables_setup:
+  stage: app_config
+  image: valudio/docker-sshpass:latest            
+  script: 
+    - sed "s|{dburl}|$DB_URL|; s|{emailurl}|$EMAIL_URL|; s/{chosts}/$C_HOSTS/; s/{ahosts}/$A_HOSTS/; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{media}|$MEDIA_URL|g; s/{adminemail}/$ADMIN_EMAIL/; s/{gqlorigins}/$QL_ORIGINS/" deploy/template.env > deploy/.env
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"   
+    - sshpass -p $PASS scp deploy/.env user@$SERVER:$HD/saleor/.env 
+
