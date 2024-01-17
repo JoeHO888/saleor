@@ -81,4 +81,10 @@ saleor_repo_clone_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN git clone https://github.com/JoeHO888/saleor.git"  
 
+gunicorn_sock_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"    
 
