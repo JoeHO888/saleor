@@ -21,6 +21,11 @@ variables:
   APP_MOUNT_URI: "app.domain.com"
   TEST_ACCOUNT_CONFIRM_REDIRECT_URL: "dashboard.domain.comaccount-confirm"
   TEST_STAFF_CONFIRM_REDIRECT_URL: "dashboard.domain.comnew-password"  
+  DB_URL: "postgres://$PGSQLUSER:$PGSQLUSERPASS@$PGDBHOST:$DBPORT/$PGSQLDBNAME"
+  EMAIL_URL: "smtp://$EMAIL:$EMAIL_PW@$EMAIL_HOST:/?ssl=True"
+  C_HOSTS: "$HOST,$APP_HOST,$TEST_ACCOUNT_CONFIRM_REDIRECT_URL,$TEST_STAFF_CONFIRM_REDIRECT_URL,localhost,127.0.0.1"
+  A_HOSTS: "$HOST,$APP_HOST,localhost,127.0.0.1"
+  QL_ORIGINS: "$HOST,$APP_HOST,localhost,127.0.0.1"  
 
 package_installation:
   stage: package_installation
