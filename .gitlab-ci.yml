@@ -2,6 +2,7 @@ stages:
   - package_installation
   - pre_setup
   - app_config
+  - build
   - deploy
 
 variables:
@@ -166,6 +167,23 @@ saleor_environment_variables_setup:
     - sed "s|{dburl}|$DB_URL|; s|{emailurl}|$EMAIL_URL|; s/{chosts}/$C_HOSTS/; s/{ahosts}/$A_HOSTS/; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{media}|$MEDIA_URL|g; s/{adminemail}/$ADMIN_EMAIL/; s/{gqlorigins}/$QL_ORIGINS/" deploy/template.env > deploy/.env
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"   
     - sshpass -p $PASS scp deploy/.env user@$SERVER:$HD/saleor/.env 
+
+build_saleor:
+  stage: build
+  image: valudio/docker-sshpass:latest 
+  variables:
+    PYTHON: $HD/env/saleor/bin/python
+    PIP: $HD/env/saleor/bin/pip
+    POETRY: $HD/env/saleor/bin/poetry    
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PYTHON --version"   
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PYTHON -m pip install --upgrade pip" 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install Django"      
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install gunicorn"      
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install uvicorn" 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install poetry==1.7.0"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$POETRY config virtualenvs.in-project true && $POETRY -C /home/user/saleor install --no-root"      
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install python-decouple"      
 
 celery_service_setup:
   stage: deploy
