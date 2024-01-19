@@ -267,6 +267,13 @@ saleor_service_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable saleor.service"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart saleor.service"
 
+nginx_service_setup:
+  stage: deploy
+  image: valudio/docker-sshpass:latest
+  script:
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable saleor.service"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl reload saleor.service"
+
 create_admin_user:
   stage: post_deploy
   image: valudio/docker-sshpass:latest
