@@ -46,7 +46,7 @@ machine_admin_account_setup:
   image: valudio/docker-sshpass:latest
   script: 
     - echo "user ALL=(ALL) NOPASSWD:ALL" > ./sudoers_user
-    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user user@169.254.100.2:/tmp
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user user@$SERVER:/tmp
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/user'"    
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/user'"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/user"    
