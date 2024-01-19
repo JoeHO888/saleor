@@ -110,14 +110,6 @@ python_virtual_environment_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/env"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN python3.9 -m venv $HD/env/saleor"
 
-gunicorn_sock_setup:
-  stage: pre_setup
-  image: valudio/docker-sshpass:latest
-  when: manual
-  script:
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"
-
 mailpit_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
@@ -250,6 +242,14 @@ saleor_environment_variables_setup:
     - sed "s|{dburl}|$DB_URL|; s|{emailurl}|$EMAIL_URL|; s/{chosts}/$C_HOSTS/; s/{ahosts}/$A_HOSTS/; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{media}|$MEDIA_URL|g; s/{adminemail}/$ADMIN_EMAIL/; s/{gqlorigins}/$QL_ORIGINS/" deploy/template.env > deploy/.env
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"
     - sshpass -p $PASS scp deploy/.env user@$SERVER:$HD/saleor/.env
+
+gunicorn_sock_setup:
+  stage: app_config
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"
 
 build_saleor:
   stage: build
