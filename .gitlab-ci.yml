@@ -126,14 +126,6 @@ mailpit_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable mailpit.service"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart mailpit.service"
 
-gunicorn_log_setup:
-  stage: pre_setup
-  image: valudio/docker-sshpass:latest
-  when: manual
-  script:
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /var/log/gunicorn"
-    - sshpass -p $PASS scp deploy/log.conf user@$SERVER:$HD/saleor
-
 nginx_config_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
@@ -243,11 +235,12 @@ saleor_environment_variables_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"
     - sshpass -p $PASS scp deploy/.env user@$SERVER:$HD/saleor/.env
 
-gunicorn_sock_setup:
+gunicorn_setup:
   stage: app_config
   image: valudio/docker-sshpass:latest
-  when: manual
   script:
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /var/log/gunicorn"
+    - sshpass -p $PASS scp deploy/log.conf user@$SERVER:$HD/saleor
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"
 
