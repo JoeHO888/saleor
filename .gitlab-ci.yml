@@ -207,16 +207,17 @@ e2e_test:
   stage: test
   image: python:3.9.18
   services:
-    - postgres
+    - name: postgres
+      alias: db
   variables:
-    # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
     POSTGRES_DB: $PGSQLDBNAME
     POSTGRES_USER: $PGSQLUSER
-    POSTGRES_PASSWORD: $PGSQLUSERPASS          
-  script: 
+    POSTGRES_PASSWORD: $PGSQLUSERPASS
+    DATABASE_URL: "postgres://$PGSQLUSER:$PGSQLUSERPASS@db/$PGSQLDBNAME"
+  script:
     - pip install poetry==1.7.0
-    - poetry install --no-root   
-    - poetry run pytest -m "e2e"    
+    - poetry install --no-root
+    - poetry run pytest -m "e2e" 
 
 saleor_environment_variables_setup:
   stage: app_config
