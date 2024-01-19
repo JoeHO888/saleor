@@ -3,6 +3,7 @@ stages:
   - package_installation
   - pre_setup
   - test
+  - app_clone
   - app_config
   - build
   - deploy
@@ -108,13 +109,6 @@ python_virtual_environment_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/env"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/env"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN python3.9 -m venv $HD/env/saleor"
-
-saleor_repo_clone_setup:
-  stage: pre_setup
-  image: valudio/docker-sshpass:latest
-  script:
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor"
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN git clone https://github.com/JoeHO888/saleor.git"
 
 gunicorn_sock_setup:
   stage: pre_setup
@@ -241,6 +235,13 @@ e2e_test:
     - pip install poetry==1.7.0
     - poetry install --no-root
     - poetry run pytest -m "e2e"
+
+saleor_repo_clone_setup:
+  stage: app_clone
+  image: valudio/docker-sshpass:latest
+  script:
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN git clone https://github.com/JoeHO888/saleor.git"
 
 saleor_environment_variables_setup:
   stage: app_config
