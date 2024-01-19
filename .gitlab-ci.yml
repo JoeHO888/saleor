@@ -29,6 +29,7 @@ variables:
   C_HOSTS: "$HOST,$APP_HOST,$TEST_ACCOUNT_CONFIRM_REDIRECT_URL,$TEST_STAFF_CONFIRM_REDIRECT_URL,localhost,127.0.0.1"
   A_HOSTS: "$HOST,$APP_HOST,localhost,127.0.0.1"
   QL_ORIGINS: "$HOST,$APP_HOST,localhost,127.0.0.1"  
+  NODE_VERSION: "v16.20.2"
 
 package_installation:
   stage: package_installation
@@ -159,6 +160,12 @@ nginx_ssl_setup:
       $DOMAIN_COM_KEY
       EOT
       "          
+nvm_install:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest            
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "cd /tmp curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash" 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "source $HD/.nvm/nvm.sh && nvm install $NODE_VERSION" 
 
 saleor_environment_variables_setup:
   stage: app_config
