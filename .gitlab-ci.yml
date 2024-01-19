@@ -214,3 +214,10 @@ create_admin_user:
   when: manual        
   script: 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "export DJANGO_SUPERUSER_PASSWORD=$SUPER_USER_PASSWORD && cd $HD/saleor && $PYTHON manage.py createsuperuser --email admin@example.com --no-input"
+
+populate_db:
+  stage: post_deploy
+  image: valudio/docker-sshpass:latest 
+  when: manual        
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py populatedb"
