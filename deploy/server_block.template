@@ -13,18 +13,18 @@ server {
     listen      80;
     listen      443 ssl;
     ssl_certificate     /etc/nginx/ssl/domain.com.crt;
-    ssl_certificate_key /etc/nginx/ssl/domain.com.key;    
+    ssl_certificate_key /etc/nginx/ssl/domain.com.key;
     server_name {host} www.{host};
     charset     utf-8;
 
     # max upload size
     client_max_body_size 75M;
-    
+
     # Django media and static files
     location {media}  {
         alias {hd}/saleor/media/;
     }
-    
+
     location {static} {
         alias {hd}/saleor/static/;
     }
@@ -38,7 +38,7 @@ server {
         proxy_set_header Connection $connection_upgrade;
         proxy_redirect off;
         proxy_buffering off;
-        proxy_pass http://uvicorn;        
+        proxy_pass http://uvicorn;
     }
 
 }
