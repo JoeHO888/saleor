@@ -177,10 +177,7 @@ saleor_environment_variables_setup:
 
 build_saleor:
   stage: build
-  image: valudio/docker-sshpass:latest 
-  variables:
-    PYTHON: $HD/env/saleor/bin/python
-    PIP: $HD/env/saleor/bin/pip    
+  image: valudio/docker-sshpass:latest      
   script: 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PYTHON --version"   
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PYTHON -m pip install --upgrade pip" 
@@ -190,6 +187,12 @@ build_saleor:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install poetry==1.7.0"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "source $VENV/bin/activate && cd $HD/saleor && poetry env remove --all && poetry -C $HD/saleor install --no-root && deactivate"      
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install python-decouple"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py migrate" 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && rm -rf $HD/saleor/static && $PYTHON manage.py collectstatic"
+# Replace npm run with explict python command    
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py get_graphql_schema > saleor/graphql/schema.graphql"      
+#     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "source $HD/.nvm/nvm.sh && nvm use $NODE_VERSION && cd $HD/saleor && npm install"
+#     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "source $VENV/bin/activate && source $HD/.nvm/nvm.sh && nvm use $NODE_VERSION && cd $HD/saleor && npm run build-schema"        
 
 celery_service_setup:
   stage: deploy
