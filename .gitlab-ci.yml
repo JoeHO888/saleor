@@ -182,6 +182,10 @@ nvm_install:
 unit_test:
   stage: test
   image: python:3.9.18
+  rules:
+    - if: $RUN_TEST == "true"
+      when: always
+    - when: never
   services:
     - name: postgres
       alias: db
@@ -198,6 +202,10 @@ unit_test:
 lint:
   stage: test
   image: python:3.9.18
+  rules:
+    - if: $RUN_TEST == "true"
+      when: always
+    - when: never
   script:
     - pip install poetry==1.7.0
     - poetry install --no-root
@@ -206,6 +214,10 @@ lint:
 e2e_test:
   stage: test
   image: python:3.9.18
+  rules:
+    - if: $RUN_TEST == "true"
+      when: always
+    - when: never
   services:
     - name: postgres
       alias: db
