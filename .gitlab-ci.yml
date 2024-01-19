@@ -188,8 +188,8 @@ build_saleor:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install gunicorn"      
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install uvicorn" 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install poetry==1.7.0"
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "source /home/user/env/saleor/bin/activate && cd $HD/saleor && poetry env remove --all && poetry -C $HD/saleor install --no-root"      
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install python-decouple"      
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "source $VENV/bin/activate && cd $HD/saleor && poetry env remove --all && poetry -C $HD/saleor install --no-root && deactivate"      
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "$PIP install python-decouple"
 
 celery_service_setup:
   stage: deploy
