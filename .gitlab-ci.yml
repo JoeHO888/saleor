@@ -182,9 +182,17 @@ nvm_install:
 unit_test:
   stage: test
   image: python:3.9.18
-  script: 
+  services:
+    - name: postgres
+      alias: db
+  variables:
+    POSTGRES_DB: $PGSQLDBNAME
+    POSTGRES_USER: $PGSQLUSER
+    POSTGRES_PASSWORD: $PGSQLUSERPASS
+    DATABASE_URL: "postgres://$PGSQLUSER:$PGSQLUSERPASS@db/$PGSQLDBNAME"
+  script:
     - pip install poetry==1.7.0
-    - poetry install --no-root   
+    - poetry install --no-root
     - poetry run pytest -m "not e2e" --cov --cov-report= --junitxml=junit/test-results.xml --django-db-bench=./queries-results.json
 
 lint:
