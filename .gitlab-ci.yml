@@ -4,6 +4,7 @@ stages:
   - app_config
   - build
   - deploy
+  - post_deploy  
 
 variables:
   UN: "user"
@@ -30,6 +31,9 @@ variables:
   A_HOSTS: "$HOST,$APP_HOST,localhost,127.0.0.1"
   QL_ORIGINS: "$HOST,$APP_HOST,localhost,127.0.0.1"  
   NODE_VERSION: "v16.20.2"
+  PYTHON: $HD/env/saleor/bin/python
+  PIP: $HD/env/saleor/bin/pip
+  VENV: $HD/env/saleor   
 
 package_installation:
   stage: package_installation
@@ -203,3 +207,10 @@ celery_service_setup:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/celery.service /etc/systemd/system/celery.service"    
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable celery.service"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart celery.service"       
+
+create_admin_user:
+  stage: post_deploy
+  image: valudio/docker-sshpass:latest  
+  when: manual        
+  script: 
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "export DJANGO_SUPERUSER_PASSWORD=$SUPER_USER_PASSWORD && cd $HD/saleor && $PYTHON manage.py createsuperuser --email admin@example.com --no-input"
