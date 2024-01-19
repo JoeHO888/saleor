@@ -168,7 +168,8 @@ nginx_ssl_setup:
       "          
 nvm_install:
   stage: pre_setup
-  image: valudio/docker-sshpass:latest            
+  image: valudio/docker-sshpass:latest 
+  when: manual
   script: 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "cd /tmp curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash" 
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "source $HD/.nvm/nvm.sh && nvm install $NODE_VERSION" 
