@@ -2,6 +2,7 @@ stages:
   - machine_admin_account_setup
   - package_installation
   - pre_setup
+  - test
   - app_config
   - build
   - deploy
@@ -34,7 +35,11 @@ variables:
   NODE_VERSION: "v16.20.2"
   PYTHON: $HD/env/saleor/bin/python
   PIP: $HD/env/saleor/bin/pip
-  VENV: $HD/env/saleor   
+  VENV: $HD/env/saleor
+  PYTHON_VER: "3.9.18"
+  PGSQLDBNAME: saleor
+  PGSQLUSER: saleor
+  PGSQLUSERPASS: saleor  
 
 machine_admin_account_setup:
   stage: machine_admin_account_setup
@@ -189,6 +194,21 @@ lint:
     - pip install poetry==1.7.0
     - poetry install --no-root   
     - poetry run pre-commit run --all
+
+e2e_test:
+  stage: test
+  image: python:3.9.18
+  services:
+    - postgres
+  variables:
+    # Configure mysql environment variables (https://hub.docker.com/_/mysql/)
+    POSTGRES_DB: $PGSQLDBNAME
+    POSTGRES_USER: $PGSQLUSER
+    POSTGRES_PASSWORD: $PGSQLUSERPASS          
+  script: 
+    - pip install poetry==1.7.0
+    - poetry install --no-root   
+    - poetry run pytest -m "e2e"    
 
 saleor_environment_variables_setup:
   stage: app_config
