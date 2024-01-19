@@ -182,6 +182,14 @@ unit_test:
     - poetry install --no-root   
     - poetry run pytest -m "not e2e" --cov --cov-report= --junitxml=junit/test-results.xml --django-db-bench=./queries-results.json
 
+lint:
+  stage: test
+  image: python:3.9.18
+  script: 
+    - pip install poetry==1.7.0
+    - poetry install --no-root   
+    - poetry run pre-commit run --all
+
 saleor_environment_variables_setup:
   stage: app_config
   image: valudio/docker-sshpass:latest            
