@@ -44,6 +44,7 @@ variables:
 machine_admin_account_setup:
   stage: machine_admin_account_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
     - echo "user ALL=(ALL) NOPASSWD:ALL" > ./sudoers_user
     - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user user@$SERVER:/tmp
@@ -54,6 +55,7 @@ machine_admin_account_setup:
 package_installation:
   stage: package_installation
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y build-essential python3-dev python3-pip python3-cffi python3.9-venv gcc"
@@ -63,6 +65,7 @@ package_installation:
 postgresql_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   variables:
     PGSQLDBNAME: saleor
     PGSQLUSER: saleor
@@ -80,6 +83,7 @@ postgresql_setup:
 secret_key_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   variables:
     PGSQLDBNAME: saleor
     PGSQLUSER: user
@@ -91,6 +95,7 @@ secret_key_setup:
 firewall_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $GQL_PORT"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $API_PORT"
@@ -98,6 +103,7 @@ firewall_setup:
 python_virtual_environment_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/env"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/env"
@@ -113,6 +119,7 @@ saleor_repo_clone_setup:
 gunicorn_sock_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"
@@ -120,6 +127,7 @@ gunicorn_sock_setup:
 mailpit_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
 # Reset mailpit
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'mailpit' && sudo systemctl stop mailpit"
@@ -135,6 +143,7 @@ mailpit_setup:
 gunicorn_log_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /var/log/gunicorn"
     - sshpass -p $PASS scp deploy/log.conf user@$SERVER:$HD/saleor
@@ -142,6 +151,7 @@ gunicorn_log_setup:
 nginx_config_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-available/saleor_server_block"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-enabled/saleor_server_block "
@@ -153,6 +163,7 @@ nginx_config_setup:
 nginx_ssl_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
+  when: manual
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/ssl"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir /etc/nginx/ssl"
