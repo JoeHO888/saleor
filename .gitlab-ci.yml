@@ -73,8 +73,7 @@ postgresql_setup:
     PGSQLUSERPASS: saleor
     CREATE_USER_CMD: CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;
   before_script:
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'postgresql' && sudo systemctl restart postgresql.service"
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'celery' && sudo systemctl stop celery.service"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "if systemctl list-units --full -all | grep -Fq 'celery'; then sudo systemctl stop celery.service; fi"
   script:
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP DATABASE IF EXISTS $PGSQLDBNAME;'"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP ROLE IF EXISTS $PGSQLUSER;'"
@@ -116,7 +115,7 @@ mailpit_setup:
   when: manual
   script:
 # Reset mailpit
-    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'mailpit' && sudo systemctl stop mailpit"
+    - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "if systemctl list-units --full -all | grep -Fq 'mailpit'; then sudo systemctl stop mailpit.service; fi"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo bash < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)"
     - sshpass -p $PASS ssh user@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/systemd/system/mailpit.service"
 # Configure mailpit
