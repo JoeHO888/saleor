@@ -310,7 +310,7 @@ saleor_environment_variables_setup:
   image: valudio/docker-sshpass:latest
   script:
     - | 
-      sed "s|{dburl}|$DB_URL|; \
+      sed "s|{dburl}|$DB_URL|; 
            s|{emailurl}|$EMAIL_URL|; \
            s/{chosts}/$C_HOSTS/; \
            s/{ahosts}/$A_HOSTS/; \
@@ -318,9 +318,9 @@ saleor_environment_variables_setup:
            s|{static}|$STATIC_URL|g; \
            s|{media}|$MEDIA_URL|g; \
            s/{adminemail}/$ADMIN_EMAIL/; \
-           s/{gqlorigins}/$QL_ORIGINS/;" \
-           s/{postgresql}/$POSTGRESQL_SERVER/;" \
-           s/{mailpit}/$MAILPIT_SERVER/;" \
+           s/{gqlorigins}/$QL_ORIGINS/; \
+           s/{postgresql}/$POSTGRESQL_SERVER/; \
+           s/{mailpit}/$MAILPIT_SERVER/; \
            s/{redis}/$REDIS_SERVER/;" \
            deploy/template.env > deploy/.env
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"
