@@ -301,9 +301,22 @@ saleor_environment_variables_setup:
   stage: app_config
   image: valudio/docker-sshpass:latest
   script:
-    - sed "s|{dburl}|$DB_URL|; s|{emailurl}|$EMAIL_URL|; s/{chosts}/$C_HOSTS/; s/{ahosts}/$A_HOSTS/; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{media}|$MEDIA_URL|g; s/{adminemail}/$ADMIN_EMAIL/; s/{gqlorigins}/$QL_ORIGINS/" deploy/template.env > deploy/.env
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"
-    - sshpass -p $PASS scp deploy/.env $ACC@$SERVER:$HD/saleor/.env
+    - | 
+      sed "s|{dburl}|$DB_URL|; \
+           s|{emailurl}|$EMAIL_URL|; \
+           s/{chosts}/$C_HOSTS/; \
+           s/{ahosts}/$A_HOSTS/; \
+           s/{host}/$HOST/g; \
+           s|{static}|$STATIC_URL|g; \
+           s|{media}|$MEDIA_URL|g; \
+           s/{adminemail}/$ADMIN_EMAIL/; \
+           s/{gqlorigins}/$QL_ORIGINS/;" \
+           s/{postgresql}/$POSTGRESQL_SERVER/;" \
+           s/{mailpit}/$MAILPIT_SERVER/;" \
+           s/{redis}/$REDIS_SERVER/;" \
+           deploy/template.env > deploy/.env
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"
+    - sshpass -p $PASS scp deploy/.env $ACC@$APP_SERVER:$HD/saleor/.env 
 
 gunicorn_setup:
   stage: app_config
