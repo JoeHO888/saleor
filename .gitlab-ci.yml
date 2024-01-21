@@ -42,12 +42,60 @@ variables:
   PGSQLUSER: saleor
   PGSQLUSERPASS: saleor
 
-machine_admin_account_setup:
+nginx_machine_admin_account_setup:
   stage: machine_admin_account_setup
   image: valudio/docker-sshpass:latest
   when: manual
   script:
     - echo "$ACC ALL=(ALL) NOPASSWD:ALL" > ./sudoers_user
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user $ACC@$NGINX_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"
+
+redis_machine_admin_account_setup:
+  stage: machine_admin_account_setup
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - echo "$ACC ALL=(ALL) NOPASSWD:ALL" > ./sudoers_user
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user $ACC@$REDIS_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"
+
+postgresql_machine_admin_account_setup:
+  stage: machine_admin_account_setup
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - echo "$ACC ALL=(ALL) NOPASSWD:ALL" > ./sudoers_user
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user $ACC@$POSTGRESQL_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"
+
+mailpit_machine_admin_account_setup:
+  stage: machine_admin_account_setup
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - echo "$ACC ALL=(ALL) NOPASSWD:ALL" > ./sudoers_user
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user $ACC@$MAILPIT_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC" 
+
+app_machine_admin_account_setup:
+  stage: machine_admin_account_setup
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - echo "$ACC ALL=(ALL) NOPASSWD:ALL" > ./sudoers_user
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user $ACC@$APP_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"       
     - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user $ACC@$SERVER:/tmp
     - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
     - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
