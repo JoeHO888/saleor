@@ -96,21 +96,41 @@ app_machine_admin_account_setup:
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"       
-    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user $ACC@$SERVER:/tmp
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"
 
-package_installation:
+nginx_package_installation:
   stage: package_installation
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo add-apt-repository ppa:deadsnakes/ppa"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y build-essential python3-dev python3-pip python3-cffi python3.9-venv gcc python3.9-dev"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info libpq-dev"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y postgresql postgresql-contrib nginx redis"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y nginx"
+
+redis_package_installation:
+  stage: package_installation
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y redis"
+
+postgresql_package_installation:
+  stage: package_installation
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y postgresql postgresql-contrib nginx redis"           
+
+app_package_installation:
+  stage: package_installation
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo add-apt-repository ppa:deadsnakes/ppa"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y build-essential python3-dev python3-pip python3-cffi python3.9-venv gcc python3.9-dev"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y libcairo2 libpango-1.0-0 libpangocairo-1.0-0 libgdk-pixbuf2.0-0 libffi-dev shared-mime-info libpq-dev"         
+
 
 postgresql_setup:
   stage: pre_setup
