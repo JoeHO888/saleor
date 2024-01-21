@@ -150,14 +150,15 @@ postgresql_setup:
     PGSQLUSERPASS: saleor
     CREATE_USER_CMD: CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;
   before_script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'postgresql' && sudo systemctl restart postgresql.service"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "if systemctl list-units --full -all | grep -Fq 'celery'; then sudo systemctl stop celery.service; fi"
-
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'postgresql' && sudo systemctl restart postgresql.service"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "if systemctl list-units --full -all | grep -Fq 'celery'; then sudo systemctl stop celery.service; fi"
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP DATABASE IF EXISTS $PGSQLDBNAME;'"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP ROLE IF EXISTS $PGSQLUSER;'"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c \"CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;\""
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'CREATE DATABASE saleor;'"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP DATABASE IF EXISTS $PGSQLDBNAME;'"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP ROLE IF EXISTS $PGSQLUSER;'"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c \"CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;\""
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'CREATE DATABASE saleor;'"
+
+    
 
 secret_key_setup:
   stage: pre_setup
@@ -167,26 +168,26 @@ secret_key_setup:
     PGSQLDBNAME: saleor
     PGSQLUSER: user
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/saleor"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir /etc/saleor"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "echo $(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 2048| head -n 1) | sudo dd status=none of=/etc/saleor/api_sk"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/saleor"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo mkdir /etc/saleor"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "echo $(cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 2048| head -n 1) | sudo dd status=none of=/etc/saleor/api_sk"
 
 firewall_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $GQL_PORT"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $API_PORT"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $GQL_PORT"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo ufw allow $API_PORT"
 
 python_virtual_environment_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/env"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/env"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN python3.9 -m venv $HD/env/saleor"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/env"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/env"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo -u $UN python3.9 -m venv $HD/env/saleor"
 
 mailpit_setup:
   stage: pre_setup
@@ -194,46 +195,46 @@ mailpit_setup:
   when: manual
   script:
 # Reset mailpit
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "if systemctl list-units --full -all | grep -Fq 'mailpit'; then sudo systemctl stop mailpit.service; fi"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo bash < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/systemd/system/mailpit.service"
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "if systemctl list-units --full -all | grep -Fq 'mailpit'; then sudo systemctl stop mailpit.service; fi"
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "sudo bash < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)"
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/systemd/system/mailpit.service"
 # Configure mailpit
-    - sshpass -p $PASS scp deploy/mailpit.service $ACC@$SERVER:/tmp
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/mailpit.service /etc/systemd/system/mailpit.service"
+    - sshpass -p $PASS scp deploy/mailpit.service $ACC@$MAILPIT_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/mailpit.service /etc/systemd/system/mailpit.service"
 # Start mailpit
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable mailpit.service"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart mailpit.service"
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable mailpit.service"
+    - sshpass -p $PASS ssh $ACC@$MAILPIT_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart mailpit.service"
 
 nginx_config_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-available/saleor_server_block"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-enabled/saleor_server_block "
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-available/saleor_server_block"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-enabled/saleor_server_block "
     - sed "s|{hd}|$HD|g; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{media}|$MEDIA_URL|g" deploy/server_block.template | dd status=none of=deploy/saleor_server_block
-    - sshpass -p $PASS scp deploy/saleor_server_block $ACC@$SERVER:/tmp
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/saleor_server_block /etc/nginx/sites-available/saleor_server_block"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo ln -s /etc/nginx/sites-available/saleor_server_block /etc/nginx/sites-enabled/"
+    - sshpass -p $PASS scp deploy/saleor_server_block $ACC@$NGINX_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/saleor_server_block /etc/nginx/sites-available/saleor_server_block"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo ln -s /etc/nginx/sites-available/saleor_server_block /etc/nginx/sites-enabled/"
 
 nginx_ssl_setup:
   stage: pre_setup
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/ssl"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir /etc/nginx/ssl"
-    - sshpass -p $PASS scp deploy/nginx.conf $ACC@$SERVER:/tmp
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/nginx.conf"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/nginx.conf /etc/nginx/nginx.conf"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/ssl"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo mkdir /etc/nginx/ssl"
+    - sshpass -p $PASS scp deploy/nginx.conf $ACC@$NGINX_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/nginx.conf"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/nginx.conf /etc/nginx/nginx.conf"
     - |
-      sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "
+      sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "
       sudo tee -a /etc/nginx/ssl/domain.com.crt > /dev/null <<EOT
       $DOMAIN_COM_CRT
       EOT
       "
     - |
-      sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "
+      sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "
       sudo tee -a /etc/nginx/ssl/domain.com.key > /dev/null <<EOT
       $DOMAIN_COM_KEY
       EOT
@@ -243,8 +244,8 @@ nvm_install:
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "cd /tmp curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "source $HD/.nvm/nvm.sh && nvm install $NODE_VERSION"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd /tmp curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "source $HD/.nvm/nvm.sh && nvm install $NODE_VERSION"
 
 unit_test:
   stage: test
@@ -302,8 +303,8 @@ saleor_repo_clone_setup:
   stage: app_clone
   image: valudio/docker-sshpass:latest
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN git clone https://github.com/JoeHO888/saleor.git"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo -u $UN git clone https://github.com/JoeHO888/saleor.git"
 
 saleor_environment_variables_setup:
   stage: app_config
@@ -330,68 +331,68 @@ gunicorn_setup:
   stage: app_config
   image: valudio/docker-sshpass:latest
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /var/log/gunicorn"
-    - sshpass -p $PASS scp deploy/log.conf $ACC@$SERVER:$HD/saleor
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /var/log/gunicorn"
+    - sshpass -p $PASS scp deploy/log.conf $ACC@$APP_SERVER:$HD/saleor
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"
 
 build_saleor:
   stage: build
   image: valudio/docker-sshpass:latest
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "$PYTHON --version"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "$PYTHON -m pip install --upgrade pip"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "$PIP install Django"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "$PIP install gunicorn"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "$PIP install uvicorn"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "$PIP install poetry==1.7.0"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "source $VENV/bin/activate && cd $HD/saleor && poetry env remove --all && poetry -C $HD/saleor install --no-root && deactivate"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "$PIP install python-decouple"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py migrate"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && rm -rf $HD/saleor/static && $PYTHON manage.py collectstatic"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PYTHON --version"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PYTHON -m pip install --upgrade pip"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PIP install Django"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PIP install gunicorn"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PIP install uvicorn"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PIP install poetry==1.7.0"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "source $VENV/bin/activate && cd $HD/saleor && poetry env remove --all && poetry -C $HD/saleor install --no-root && deactivate"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PIP install python-decouple"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py migrate"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && rm -rf $HD/saleor/static && $PYTHON manage.py collectstatic"
 # Replace npm run with explict python command
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py get_graphql_schema > saleor/graphql/schema.graphql"
-#     - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "source $HD/.nvm/nvm.sh && nvm use $NODE_VERSION && cd $HD/saleor && npm install"
-#     - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "source $VENV/bin/activate && source $HD/.nvm/nvm.sh && nvm use $NODE_VERSION && cd $HD/saleor && npm run build-schema"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py get_graphql_schema > saleor/graphql/schema.graphql"
+#     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "source $HD/.nvm/nvm.sh && nvm use $NODE_VERSION && cd $HD/saleor && npm install"
+#     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "source $VENV/bin/activate && source $HD/.nvm/nvm.sh && nvm use $NODE_VERSION && cd $HD/saleor && npm run build-schema"
 
 celery_service_setup:
   stage: deploy
   image: valudio/docker-sshpass:latest
   script:
     - sed "s/{un}/$UN/; s|{hd}|$HD|g" deploy/celery.template.service > deploy/celery.service
-    - sshpass -p $PASS scp -o StrictHostKeychecking=no deploy/celery.service $ACC@$SERVER:/tmp
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/celery.service /etc/systemd/system/celery.service"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable celery.service"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart celery.service"
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no deploy/celery.service $ACC@$REDIS_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/celery.service /etc/systemd/system/celery.service"
+    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable celery.service"
+    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart celery.service"
 
 saleor_service_setup:
   stage: deploy
   image: valudio/docker-sshpass:latest
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/systemd/system/saleor.service"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/systemd/system/saleor.service"
     - sed "s/{un}/$UN/; s|{hd}|$HD|g" deploy/saleor.template.service | dd status=none of=deploy/saleor.service
-    - sshpass -p $PASS scp deploy/saleor.service $ACC@$SERVER:/tmp
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/saleor.service /etc/systemd/system/saleor.service"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable saleor.service"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart saleor.service"
+    - sshpass -p $PASS scp deploy/saleor.service $ACC@$APP_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/saleor.service /etc/systemd/system/saleor.service"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable saleor.service"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart saleor.service"
 
 nginx_service_setup:
   stage: deploy
   image: valudio/docker-sshpass:latest
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable nginx.service"
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "sudo systemctl reload nginx.service"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable nginx.service"
+    - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo systemctl reload nginx.service"
 
 create_admin_user:
   stage: post_deploy
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "export DJANGO_SUPERUSER_PASSWORD=$SUPER_USER_PASSWORD && cd $HD/saleor && $PYTHON manage.py createsuperuser --email admin@example.com --no-input"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "export DJANGO_SUPERUSER_PASSWORD=$SUPER_USER_PASSWORD && cd $HD/saleor && $PYTHON manage.py createsuperuser --email admin@example.com --no-input"
 
 populate_db:
   stage: post_deploy
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py populatedb"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && $PYTHON manage.py populatedb"
