@@ -112,7 +112,9 @@ redis_package_installation:
   script:
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y redis"
-
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "if ! sudo grep -q '^bind 0.0.0.0$' /etc/redis/redis.conf; then echo 'bind 0.0.0.0' | sudo tee -a /etc/redis/redis.conf; fi"    
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart redis"    
+  
 postgresql_package_installation:
   stage: package_installation
   image: valudio/docker-sshpass:latest
