@@ -41,6 +41,7 @@ variables:
   PGSQLDBNAME: saleor
   PGSQLUSER: saleor
   PGSQLUSERPASS: saleor
+  PGSQLVERSION: 14
 
 nginx_machine_admin_account_setup:
   stage: machine_admin_account_setup
@@ -121,7 +122,12 @@ postgresql_package_installation:
   when: manual
   script:
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
-    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y postgresql postgresql-contrib nginx redis"           
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y postgresql postgresql-contrib"  
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo sed -i '/listen_addresses/d' /etc/postgresql/$PGSQLVERSION/main/postgresql.conf"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "echo listen_addresses = \'*\' | sudo tee -a /etc/postgresql/$PGSQLVERSION/main/postgresql.conf"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo sed -i '/host all  all 0.0.0.0\/0 scram-sha-256/d' /etc/postgresql/$PGSQLVERSION/main/pg_hba.conf"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "echo host all  all 0.0.0.0/0 scram-sha-256 | sudo tee -a /etc/postgresql/$PGSQLVERSION/main/pg_hba.conf"    
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart postgresql@$PGSQLVERSION-main.service"         
 
 app_package_installation:
   stage: package_installation
