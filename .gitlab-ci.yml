@@ -212,7 +212,12 @@ nginx_config_setup:
   script:
     - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-available/saleor_server_block"
     - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf /etc/nginx/sites-enabled/saleor_server_block "
-    - sed "s|{hd}|$HD|g; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{media}|$MEDIA_URL|g" deploy/server_block.template | dd status=none of=deploy/saleor_server_block
+    - |
+      if [ "$SAME_HOST" = true ]; then
+        sed "s|{hd}|$HD|g; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{server}|unix://$HD/run/saleor.sock|g; s|{media}|$MEDIA_URL|g" deploy/server_block.template | dd status=none of=deploy/saleor_server_block
+      else
+        sed "s|{hd}|$HD|g; s/{host}/$HOST/g; s|{static}|$STATIC_URL|g; s|{server}|$APP_PRIVATE_IP:$API_PORT|g; s|{media}|$MEDIA_URL|g" deploy/server_block.template | dd status=none of=deploy/saleor_server_block
+      fi
     - sshpass -p $PASS scp deploy/saleor_server_block $ACC@$NGINX_SERVER:/tmp
     - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/saleor_server_block /etc/nginx/sites-available/saleor_server_block"
     - sshpass -p $PASS ssh $ACC@$NGINX_SERVER -t -o StrictHostKeychecking=no "sudo ln -s /etc/nginx/sites-available/saleor_server_block /etc/nginx/sites-enabled/"

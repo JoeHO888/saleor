@@ -1,6 +1,6 @@
 # the upstream component nginx needs to connect to
 upstream uvicorn {
-    server unix://{hd}/run/saleor.sock;
+    server {server};
 }
 
 map $http_upgrade $connection_upgrade {
