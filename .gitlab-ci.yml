@@ -42,6 +42,10 @@ variables:
   PGSQLUSER: saleor
   PGSQLUSERPASS: saleor
   PGSQLVERSION: 14
+  MINIO_MOUNT_POINT: /mnt/data
+  MINIO_ROOT_USER: $ACC
+  MINIO_ROOT_PASSWORD: $PASS
+  MINIO_BUCKET: saleor
 
 nginx_machine_admin_account_setup:
   stage: machine_admin_account_setup
@@ -75,6 +79,17 @@ postgresql_machine_admin_account_setup:
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"
+
+minio_machine_admin_account_setup:
+  stage: machine_admin_account_setup
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - echo "$ACC ALL=(ALL) NOPASSWD:ALL" > ./sudoers_user
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no ./sudoers_user $ACC@$MINIO_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'rm -rf /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S bash -c 'mv /tmp/sudoers_user /etc/sudoers.d/$ACC'"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"    
 
 mailpit_machine_admin_account_setup:
   stage: machine_admin_account_setup
@@ -114,7 +129,22 @@ redis_package_installation:
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get update"
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo apt-get install -y redis"
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "if ! sudo grep -q '^bind 0.0.0.0$' /etc/redis/redis.conf; then echo 'bind 0.0.0.0' | sudo tee -a /etc/redis/redis.conf; fi"    
-    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart redis"    
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart redis" 
+
+minio_package_installation:
+  stage: package_installation
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20240116160738.0.0_amd64.deb -O minio.deb"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo dpkg -i minio.deb"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo getent group minio-user || groupadd -r minio-user"    
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo id -u minio-user &>/dev/null || useradd -M -r -g minio-user minio-user" 
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo chown minio-user:minio-user $MINIO_MOUNT_POINT"     
+    - sed "s|{minio_root_user}|$MINIO_ROOT_USER|g; s/{minio_root_password}/$MINIO_ROOT_PASSWORD/g; s|{minio_mount_point}|$MINIO_MOUNT_POINT|g" deploy/minio.template.conf | dd status=none of=deploy/minio
+    - sshpass -p $PASS scp deploy/minio $ACC@$MINIO_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/minio /etc/default/minio"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo systemctl start minio.service"        
   
 postgresql_package_installation:
   stage: package_installation
@@ -158,7 +188,24 @@ postgresql_setup:
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c \"CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;\""
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'CREATE DATABASE saleor;'"
 
-    
+minio_bucket_setup:
+  stage: pre_setup
+  image: valudio/docker-sshpass:latest
+  when: manual
+  script:
+    # - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "curl https://dl.min.io/client/mc/release/linux-amd64/mc   --create-dirs   -o /tmp/mc"
+    # - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "chmod +x /tmp/mc"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "/tmp/mc alias set myminio http://localhost:9000 azure P@55w.rd1234"    
+    - |
+      sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "
+        if /tmp/mc ls myminio | grep -q $MINIO_BUCKET; then
+          /tmp/mc rm -r --force myminio/$MINIO_BUCKET; 
+          /tmp/mc rb myminio/$MINIO_BUCKET;
+          /tmp/mc mb myminio/$MINIO_BUCKET;
+        else
+          /tmp/mc mb myminio/$MINIO_BUCKET
+        fi
+      " 
 
 secret_key_setup:
   stage: pre_setup
