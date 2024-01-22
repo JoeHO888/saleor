@@ -365,10 +365,10 @@ celery_service_setup:
   image: valudio/docker-sshpass:latest
   script:
     - sed "s/{un}/$UN/; s|{hd}|$HD|g" deploy/celery.template.service > deploy/celery.service
-    - sshpass -p $PASS scp -o StrictHostKeychecking=no deploy/celery.service $ACC@$REDIS_SERVER:/tmp
-    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/celery.service /etc/systemd/system/celery.service"
-    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable celery.service"
-    - sshpass -p $PASS ssh $ACC@$REDIS_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart celery.service"
+    - sshpass -p $PASS scp -o StrictHostKeychecking=no deploy/celery.service $ACC@$APP_SERVER:/tmp
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/celery.service /etc/systemd/system/celery.service"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable celery.service"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo systemctl restart celery.service"
 
 saleor_service_setup:
   stage: deploy
