@@ -325,9 +325,9 @@ saleor_environment_variables_setup:
            s|{media}|$MEDIA_URL|g; \
            s/{adminemail}/$ADMIN_EMAIL/; \
            s/{gqlorigins}/$QL_ORIGINS/; \
-           s/{postgresql}/$POSTGRESQL_SERVER/; \
-           s/{mailpit}/$MAILPIT_SERVER/; \
-           s/{redis}/$REDIS_SERVER/;" \
+           s/{postgresql}/$POSTGRESQL_SERVER_PRIVATE_IP/; \
+           s/{mailpit}/$MAILPIT_SERVER_PRIVATE_IP/; \
+           s/{redis}/$REDIS_SERVER_PRIVATE_IP/;" \
            deploy/template.env > deploy/.env
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"
     - sshpass -p $PASS scp deploy/.env $ACC@$APP_SERVER:$HD/saleor/.env 
