@@ -211,7 +211,7 @@ minio_bucket_setup:
   script:
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "curl https://dl.min.io/client/mc/release/linux-amd64/mc   --create-dirs   -o /tmp/mc"
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "chmod +x /tmp/mc"
-    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "/tmp/mc alias set myminio http://localhost:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD"    
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "/tmp/mc alias set myminio https://localhost:9000 $MINIO_ROOT_USER $MINIO_ROOT_PASSWORD"    
     - |
       sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "
         if /tmp/mc ls myminio | grep -q $MINIO_BUCKET; then
