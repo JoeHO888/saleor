@@ -138,6 +138,7 @@ minio_package_installation:
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo dpkg -i minio.deb"
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo getent group minio-user || sudo groupadd -r minio-user"    
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo id -u minio-user &>/dev/null || sudo useradd -M -r -g minio-user minio-user" 
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p $MINIO_MOUNT_POINT"    
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo chown minio-user:minio-user $MINIO_MOUNT_POINT"     
     - sed "s|{minio_root_user}|$MINIO_ROOT_USER|g; s/{minio_root_password}/$MINIO_ROOT_PASSWORD/g; s|{minio_mount_point}|$MINIO_MOUNT_POINT|g" deploy/minio.template.conf | dd status=none of=deploy/minio
     - sshpass -p $PASS scp deploy/minio $ACC@$MINIO_SERVER:/tmp
