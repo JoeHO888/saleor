@@ -148,13 +148,13 @@ minio_package_installation:
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /etc/minio/ssl"    
     - |
       sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "
-      sudo tee -a /etc/minio/ssl/public.crt > /dev/null <<EOT
+      sudo tee /etc/minio/ssl/public.crt > /dev/null <<EOT
       $DOMAIN_COM_CRT
       EOT
       "
     - |
       sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "
-      sudo tee -a /etc/minio/ssl/private.key > /dev/null <<EOT
+      sudo tee /etc/minio/ssl/private.key > /dev/null <<EOT
       $DOMAIN_COM_KEY
       EOT
       "       
