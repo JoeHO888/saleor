@@ -1,6 +1,6 @@
 stages:
   - machine_admin_account_setup
-  - CA_setup
+  - ca_setup
   - package_installation
   - pre_setup
   - test
@@ -114,7 +114,7 @@ app_machine_admin_account_setup:
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "echo $PASS | sudo -S chown root:root /etc/sudoers.d/$ACC"       
 
 minio_ca_setup:
-  stage: machine_admin_account_setup
+  stage: ca_setup
   image: valudio/docker-sshpass:latest
   when: manual
   script:
@@ -127,7 +127,7 @@ minio_ca_setup:
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo update-ca-certificates"      
 
 app_ca_setup:
-  stage: machine_admin_account_setup
+  stage: ca_setup
   image: valudio/docker-sshpass:latest
   when: manual
   script:
