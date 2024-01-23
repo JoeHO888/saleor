@@ -222,6 +222,7 @@ minio_bucket_setup:
           /tmp/mc mb myminio/$MINIO_BUCKET
         fi
       " 
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "/tmp/mc anonymous set public myminio/$MINIO_BUCKET"
 
 secret_key_setup:
   stage: pre_setup
