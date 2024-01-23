@@ -378,7 +378,7 @@ saleor_environment_variables_setup:
            s/{minio_access_key_id}/$MINIO_ROOT_USER/; \
            s/{minio_secret_access_key}/$MINIO_ROOT_PASSWORD/; \
            s/{minio_bucket_name}/$MINIO_BUCKET/; \
-           s/{minio}/$MINIO_SERVER_PRIVATE_IP/; \
+           s/{minio}/$MINIO_SERVER/; \
            s/{postgresql}/$POSTGRESQL_SERVER_PRIVATE_IP/; \
            s/{mailpit}/$MAILPIT_SERVER_PRIVATE_IP/; \
            s/{redis}/$REDIS_SERVER_PRIVATE_IP/;" \
