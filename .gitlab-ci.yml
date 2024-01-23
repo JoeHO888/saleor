@@ -144,7 +144,20 @@ minio_package_installation:
     - sshpass -p $PASS scp deploy/minio $ACC@$MINIO_SERVER:/tmp
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/minio /etc/default/minio"
     - sshpass -p $PASS scp deploy/minio.service $ACC@$MINIO_SERVER:/tmp
-    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/minio.service /usr/lib/systemd/system/minio.service"   
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo mv /tmp/minio.service /usr/lib/systemd/system/minio.service"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /etc/minio/ssl"    
+    - |
+      sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "
+      sudo tee -a /etc/minio/ssl/public.crt > /dev/null <<EOT
+      $DOMAIN_COM_CRT
+      EOT
+      "
+    - |
+      sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "
+      sudo tee -a /etc/minio/ssl/private.key > /dev/null <<EOT
+      $DOMAIN_COM_KEY
+      EOT
+      "       
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo systemctl daemon-reload"        
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo systemctl start minio.service"
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo systemctl enable minio.service"    
