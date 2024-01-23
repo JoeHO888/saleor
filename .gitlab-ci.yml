@@ -403,7 +403,7 @@ build_saleor:
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "source $VENV/bin/activate && cd $HD/saleor && poetry env remove --all && poetry -C $HD/saleor install --no-root && deactivate"
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PIP install python-decouple"
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && set -o allexport && source .env && $PYTHON manage.py migrate && set +o allexport"
-    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && rm -rf $HD/saleor/static && set -o allexport && source .env && $PYTHON manage.py collectstatic && set +o allexport"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && rm -rf $HD/saleor/static && set -o allexport && source .env && $PYTHON manage.py collectstatic --no-input && set +o allexport"
 # Replace npm run with explict python command
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "cd $HD/saleor && set -o allexport && source .env && $PYTHON manage.py get_graphql_schema > saleor/graphql/schema.graphql && set +o allexport"
 #     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "source $HD/.nvm/nvm.sh && nvm use $NODE_VERSION && cd $HD/saleor && npm install"
