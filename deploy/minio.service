@@ -10,8 +10,8 @@ Type=notify
 
 WorkingDirectory=/usr/local
 
-User={acc}
-Group={acc}
+User=minio-user
+Group=minio-user
 ProtectProc=invisible
 
 EnvironmentFile=-/etc/default/minio
