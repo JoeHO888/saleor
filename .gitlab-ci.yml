@@ -43,8 +43,6 @@ variables:
   PGSQLUSERPASS: saleor
   PGSQLVERSION: 14
   MINIO_MOUNT_POINT: /mnt/data
-  MINIO_ROOT_USER: $ACC
-  MINIO_ROOT_PASSWORD: $PASS
   MINIO_BUCKET: saleor
 
 nginx_machine_admin_account_setup:
