@@ -193,8 +193,8 @@ minio_bucket_setup:
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    # - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "curl https://dl.min.io/client/mc/release/linux-amd64/mc   --create-dirs   -o /tmp/mc"
-    # - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "chmod +x /tmp/mc"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "curl https://dl.min.io/client/mc/release/linux-amd64/mc   --create-dirs   -o /tmp/mc"
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "chmod +x /tmp/mc"
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "/tmp/mc alias set myminio http://localhost:9000 azure P@55w.rd1234"    
     - |
       sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "
