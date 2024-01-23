@@ -408,6 +408,7 @@ saleor_environment_variables_setup:
   stage: app_config
   image: valudio/docker-sshpass:latest
   script:
+    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "grep -q '$MINIO_SERVER $MINIO_DOMAIN' /etc/hosts || echo '$MINIO_SERVER $MINIO_DOMAIN' | sudo tee -a /etc/hosts"  
     - | 
       sed "s|{dburl}|$DB_URL|; 
            s|{emailurl}|$EMAIL_URL|; \
@@ -421,7 +422,7 @@ saleor_environment_variables_setup:
            s/{minio_access_key_id}/$MINIO_ROOT_USER/; \
            s/{minio_secret_access_key}/$MINIO_ROOT_PASSWORD/; \
            s/{minio_bucket_name}/$MINIO_BUCKET/; \
-           s/{minio}/$MINIO_SERVER/; \
+           s/{minio}/$MINIO_DOMAIN/; \
            s/{postgresql}/$POSTGRESQL_SERVER_PRIVATE_IP/; \
            s/{mailpit}/$MAILPIT_SERVER_PRIVATE_IP/; \
            s/{redis}/$REDIS_SERVER_PRIVATE_IP/;" \
