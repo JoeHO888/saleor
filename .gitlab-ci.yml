@@ -227,7 +227,7 @@ postgresql_setup:
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "systemctl list-units --full -all | grep -Fq 'postgresql' && sudo systemctl restart postgresql.service"
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "if systemctl list-units --full -all | grep -Fq 'celery'; then sudo systemctl stop celery.service; fi"
   script:
-    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP DATABASE IF EXISTS $PGSQLDBNAME;'"
+    - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP DATABASE IF EXISTS $PGSQLDBNAME WITH (FORCE);'"
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'DROP ROLE IF EXISTS $PGSQLUSER;'"
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c \"CREATE ROLE $PGSQLUSER PASSWORD '$PGSQLUSERPASS' SUPERUSER CREATEDB CREATEROLE INHERIT LOGIN;\""
     - sshpass -p $PASS ssh $ACC@$POSTGRESQL_SERVER -t -o StrictHostKeychecking=no "sudo -i -u postgres psql -c 'CREATE DATABASE saleor;'"
