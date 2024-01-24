@@ -442,6 +442,14 @@ gunicorn_setup:
 build_saleor:
   stage: build
   image: valudio/docker-sshpass:latest
+  before_script:
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "wget https://curl.haxx.se/ca/cacert.pem --output-document=$HD/saleor/cacert.pem"
+    - |
+      sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "
+      sudo tee -a $HD/saleor/cacert.pem > /dev/null <<EOT
+      $CA_PEM
+      EOT
+      "    
   script:
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PYTHON --version"
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "$PYTHON -m pip install --upgrade pip"
