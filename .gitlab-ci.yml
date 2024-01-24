@@ -442,7 +442,7 @@ build_saleor:
     - |
       sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "
       sudo tee -a $HD/saleor/cacert.pem > /dev/null <<EOT
-      $CA_PEM
+      $CA_CRT
       EOT
       "    
   script:
