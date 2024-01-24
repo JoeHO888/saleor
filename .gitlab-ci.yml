@@ -162,8 +162,8 @@ minio_package_installation:
   image: valudio/docker-sshpass:latest
   when: manual
   script:
-    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20240116160738.0.0_amd64.deb -O minio.deb"
-    - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo dpkg -i minio.deb"
+    # - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20240116160738.0.0_amd64.deb -O minio.deb"
+    # - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo dpkg -i minio.deb"
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo getent group minio-user || sudo groupadd -r minio-user"    
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo id -u minio-user &>/dev/null || sudo useradd -M -r -g minio-user minio-user" 
     - sshpass -p $PASS ssh $ACC@$MINIO_SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p $MINIO_MOUNT_POINT"    
@@ -404,10 +404,19 @@ saleor_repo_clone_setup:
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor"
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo -u $UN git clone https://github.com/JoeHO888/saleor.git"
 
-saleor_environment_variables_setup:
+gunicorn_setup:
   stage: app_config
   image: valudio/docker-sshpass:latest
   script:
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /var/log/gunicorn"
+    - sshpass -p $PASS scp deploy/log.conf $ACC@$APP_SERVER:$HD/saleor
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
+    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"
+
+build_saleor:
+  stage: build
+  image: valudio/docker-sshpass:latest
+  before_script:
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "grep -q '$MINIO_SERVER $MINIO_DOMAIN' /etc/hosts || echo '$MINIO_SERVER $MINIO_DOMAIN' | sudo tee -a /etc/hosts"  
     - | 
       sed "s|{dburl}|$DB_URL|; 
@@ -428,21 +437,7 @@ saleor_environment_variables_setup:
            s/{redis}/$REDIS_SERVER_PRIVATE_IP/;" \
            deploy/template.env > deploy/.env
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/saleor/.env"
-    - sshpass -p $PASS scp deploy/.env $ACC@$APP_SERVER:$HD/saleor/.env 
-
-gunicorn_setup:
-  stage: app_config
-  image: valudio/docker-sshpass:latest
-  script:
-    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo mkdir -p /var/log/gunicorn"
-    - sshpass -p $PASS scp deploy/log.conf $ACC@$APP_SERVER:$HD/saleor
-    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo rm -rf $HD/run"
-    - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "sudo -u $UN mkdir $HD/run"
-
-build_saleor:
-  stage: build
-  image: valudio/docker-sshpass:latest
-  before_script:
+    - sshpass -p $PASS scp deploy/.env $ACC@$APP_SERVER:$HD/saleor/.env  
     - sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "wget https://curl.haxx.se/ca/cacert.pem --output-document=$HD/saleor/cacert.pem"
     - |
       sshpass -p $PASS ssh $ACC@$APP_SERVER -t -o StrictHostKeychecking=no "
